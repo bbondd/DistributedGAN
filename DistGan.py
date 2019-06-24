@@ -5,17 +5,9 @@ import keras as k
 
 
 class Data(object):
-    def load_kejang(self):
-        real_data = np.load('./kejang.npy')
-        real_data = real_data.astype('float32')
-        real_data = np.mean(real_data, axis=3)
-        real_data = np.expand_dims(real_data, axis=3) / 255
-
-        self.real_data = real_data
-
     def load_mnist(self):
         (real_data, _), (_, _) = k.datasets.mnist.load_data()
-        real_data = real_data[:2000].astype('float32')
+        real_data = real_data[:10000].astype('float32')
         real_data = np.expand_dims(real_data, axis=3) / 255
 
         self.real_data = real_data
@@ -169,67 +161,28 @@ class C(object):
         return model
 
     @staticmethod
-    def save_generator(generator: k.Model, directory_path, iteration_number):
-        generator_path = directory_path + '/generator'
-        try:
-            os.makedirs(generator_path)
-        except FileExistsError:
-            pass
-
-        generator.save_weights(generator_path + '/weights.h5')
-        with open(generator_path + '/architecture.json', 'w') as f:
-            f.write(generator.to_json())
-        k.utils.plot_model(generator, generator_path + '/graph.png', show_shapes=True)
-
-        image_path = directory_path + '/image'
-
-        noise = np.random.uniform(-1, 1, [C.generate_image_size, C.noise_dimension])
-        image_arrays = generator.predict(x=noise) * 255.0
-
-        try:
-            os.makedirs(image_path)
-        except FileExistsError:
-            pass
-
-        for i in range(len(image_arrays)):
-            image.save_img(x=image_arrays[i],
-                           path=image_path + '/iteration%d num%d.jpg' % (iteration_number, i))
-
-    @staticmethod
-    def save_discriminator(discriminator: k.Model, directory_path):
-        discriminator_path = directory_path + '/discriminator'
-        try:
-            os.makedirs(discriminator_path)
-        except FileExistsError:
-            pass
-
-        discriminator.save_weights(discriminator_path + '/weights.h5')
-        with open(discriminator_path + '/architecture.json', 'w') as f:
-            f.write(discriminator.to_json())
-        k.utils.plot_model(discriminator, discriminator_path + '/graph.png', show_shapes=True)
-
-    @staticmethod
     def generator_layer_size():
-        return np.random.randint(5, 6)
+        return np.random.randint(1, 2)
 
     @staticmethod
     def discriminator_layer_size():
-        return np.random.randint(3, 6)
+        return np.random.randint(1, 2)
 
     image_width = 28
     noise_dimension = 128
     first_convolution_shape = np.array([4, 4, 128])
     gan_size = 3
     batch_size = 64
+    learning_rate = 0.003
 
     path = './results'
     generate_image_size = 10
 
 
 class Gan(object):
-    def __init__(self, real_data, generator, discriminator):
+    def __init__(self, real_data, generator, discriminator, learning_rate):
         self.real_data = real_data
-        optimizer = k.optimizers.Adam(0.003)
+        optimizer = k.optimizers.Adam(learning_rate)
 
         discriminator.trainable = True
         discriminator.compile(optimizer=optimizer, loss='mse')
@@ -263,6 +216,12 @@ class Gan(object):
     def set_discriminator_weights(self, weights):
         self.discriminator.set_weights(weights)
 
+    def get_sample_images(self):
+        noise = np.random.uniform(-1, 1, [C.generate_image_size, C.noise_dimension])
+        image_arrays = self.generator.predict(x=noise) * 255.0
+
+        return image_arrays
+
 
 class DistributedGan(object):
     def __init__(self, distribution_size, real_data, generator, discriminator):
@@ -270,7 +229,8 @@ class DistributedGan(object):
         self.generator = generator
         self.gans = [Gan(real_data[np.random.choice(len(real_data), len(real_data))],
                          k.models.clone_model(generator),
-                         k.models.clone_model(discriminator)) for _ in range(distribution_size)]
+                         k.models.clone_model(discriminator),
+                         C.learning_rate * distribution_size) for _ in range(distribution_size)]
 
     def get_generator_weights(self):
         weights_set = [gan.get_generator_weights() for gan in self.gans]
@@ -281,7 +241,7 @@ class DistributedGan(object):
         [gan.set_generator_weights(weights) for gan in self.gans]
 
     def get_discriminator_weights(self):
-        weights_set = [gan.get_discriminator_weights() for gan in self.gans]
+        weights_set = ([gan.get_discriminator_weights() for gan in self.gans])
         return np.mean(weights_set, axis=0)
 
     def set_discriminator_weights(self, weights):
@@ -293,11 +253,42 @@ class DistributedGan(object):
         self.set_generator_weights(self.get_generator_weights())
         self.set_discriminator_weights(self.get_discriminator_weights())
 
-    def get_generator(self):
-        return self.generator
+    def save_generator(self, directory_path, iteration_number):
+        generator_path = directory_path + '/generator'
+        try:
+            os.makedirs(generator_path)
+        except FileExistsError:
+            pass
 
-    def get_discriminator(self):
-        return self.discriminator
+        self.generator.save_weights(generator_path + '/weights.h5')
+        with open(generator_path + '/architecture.json', 'w') as f:
+            f.write(self.generator.to_json())
+        k.utils.plot_model(self.generator, generator_path + '/graph.png', show_shapes=True)
+
+        image_path = directory_path + '/image'
+
+        image_arrays = self.gans[0].get_sample_images()
+
+        try:
+            os.makedirs(image_path)
+        except FileExistsError:
+            pass
+
+        for i in range(len(image_arrays)):
+            image.save_img(x=image_arrays[i],
+                           path=image_path + '/iteration%d num%d.png' % (iteration_number, i))
+
+    def save_discriminator(self, directory_path):
+        discriminator_path = directory_path + '/discriminator'
+        try:
+            os.makedirs(discriminator_path)
+        except FileExistsError:
+            pass
+
+        self.discriminator.save_weights(discriminator_path + '/weights.h5')
+        with open(discriminator_path + '/architecture.json', 'w') as f:
+            f.write(self.discriminator.to_json())
+        k.utils.plot_model(self.discriminator, discriminator_path + '/graph.png', show_shapes=True)
 
 
 class MultiDistributedGan(object):
@@ -351,12 +342,12 @@ class MultiDistributedGan(object):
 
     def save(self, iteration_number):
         for i in range(len(self.same_generator_gans_group)):
-            generator = self.same_generator_gans_group[i][0].get_generator()
-            C.save_generator(generator, C.path + '/generator %d' % i, iteration_number)
+            distributed_gan = self.same_generator_gans_group[i][0]
+            distributed_gan.save_generator(C.path + '/generator %d' % i, iteration_number)
 
         for i in range(len(self.same_discriminator_gans_group)):
-            discriminator = self.same_discriminator_gans_group[i][0].get_discriminator()
-            C.save_discriminator(discriminator, C.path + '/discriminator %d' % i)
+            distributed_gan = self.same_discriminator_gans_group[i][0]
+            distributed_gan.save_discriminator(C.path + '/discriminator %d' % i)
 
 
 def main():
@@ -403,6 +394,6 @@ main()
 """
 ray start --head --redis-port=6379
 watch -d -n 0.5 nvidia-smi
-10.128.15.203:6379
-192.168.227.135:6379
+10.128.15.221:6379
+192.168.227.143:6379
 """

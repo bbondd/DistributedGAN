@@ -8,7 +8,7 @@ import ray
 class Data(object):
     def load_mnist(self):
         (real_data, _), (_, _) = k.datasets.mnist.load_data()
-        real_data = real_data[:10000].astype('float32')
+        real_data = real_data[:2000].astype('float32')
         real_data = np.expand_dims(real_data, axis=3) / 255
 
         self.real_data = real_data
@@ -163,11 +163,11 @@ class C(object):
 
     @staticmethod
     def generator_layer_size():
-        return np.random.randint(5, 7)
+        return np.random.randint(4, 6)
 
     @staticmethod
     def discriminator_layer_size():
-        return np.random.randint(2, 5)
+        return np.random.randint(4, 5)
 
     image_width = 28
     noise_dimension = 128
@@ -383,7 +383,7 @@ def main():
     multi_distributed_gan = MultiDistributedGan(real_data, distribution_size, generators, discriminators)
 
     for i in range(iteration_size):
-        if i % 3 == 0:
+        if i % 1 == 0:
             multi_distributed_gan.save(i)
             print('iteration', i)
 
@@ -397,8 +397,6 @@ main()
 
 
 """
-ray start --head --redis-port=6379
+ray start --head --redis-port=6379 --num-gpus=3
 watch -d -n 0.5 nvidia-smi
-10.128.15.221:6379
-192.168.227.147:6379
 """

@@ -22,7 +22,7 @@ class C(object):
     @staticmethod
     def random_layer(last_output, filter_size):
         layer = np.random.choice([k.layers.Conv2D, k.layers.DepthwiseConv2D, k.layers.Conv2DTranspose],
-                                 p=[0.25, 0.25, 0.5])
+                                 p=[0.20, 0.20, 0.60])
 
         hyper_parameters = {
             'filters': filter_size,

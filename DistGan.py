@@ -7,7 +7,7 @@ import keras as k
 class Data(object):
     def load_mnist(self):
         (real_data, _), (_, _) = k.datasets.mnist.load_data()
-        real_data = real_data[:10000].astype('float32')
+        real_data = real_data[:5000].astype('float32')
         real_data = np.expand_dims(real_data, axis=3) / 255
 
         self.real_data = real_data
@@ -21,7 +21,7 @@ class C(object):
     @staticmethod
     def random_layer(last_output, filter_size):
         layer = np.random.choice([k.layers.Conv2D, k.layers.DepthwiseConv2D, k.layers.Conv2DTranspose],
-                                 p=[0.25, 0.25, 0.5])
+                                 p=[0.20, 0.20, 0.60])
 
         hyper_parameters = {
             'filters': filter_size,
@@ -162,11 +162,11 @@ class C(object):
 
     @staticmethod
     def generator_layer_size():
-        return np.random.randint(1, 2)
+        return np.random.randint(6, 8)
 
     @staticmethod
     def discriminator_layer_size():
-        return np.random.randint(1, 2)
+        return np.random.randint(3, 5)
 
     image_width = 28
     noise_dimension = 128

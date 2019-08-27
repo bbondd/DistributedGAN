@@ -48,6 +48,6 @@ However, you can also create a random model to search good hyperparameters throu
 
 No significant quality improvement was seen.
 
-Also, the speed of learning is slower because of the bottleneck caused by ray's distributed system through the Internet.
+Also, the speed of learning is slower in distributed environment because of the bottleneck caused by ray's distributed system through the Internet.
 
 In gtx1060, 3 Generator, 2 Discriminator, 1 Federated Learning, it takes 14sec on 1 computer and 1min 17sec on 6 computers in 1 iteration.

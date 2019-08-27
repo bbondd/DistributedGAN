@@ -13,6 +13,8 @@ Hyperparameter search through genetic algorithms
 
 Using Tensorflow, Ray, Python
 
+Currently incomplete
+
 
 Architecture of model
 

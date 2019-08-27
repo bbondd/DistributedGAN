@@ -14,6 +14,7 @@ Hyperparameter search through genetic algorithms
 Using Tensorflow, Ray, Python
 
 Currently incomplete
+<br  /><br  /><br  /><br  /><br  /><br  />
 
 
 Architecture of model
@@ -23,6 +24,7 @@ Architecture of model
 Example of 3 discriminator and 3 generator with 3 federated learning. It can be distributed to 3 * 3 * 3 + 1(main server) = 28 computers.
 
 You can change the number of discriminator, generator, and federated learning.(ex. 4d, 2g, 3fl => 4 * 2 * 3 + 1 = 25 computers)
+<br  /><br  /><br  /><br  /><br  /><br  />
 
 These are the results of distributed learning
 ![architecture](./results/1g1d.png)

@@ -14,6 +14,16 @@ Hyperparameter search through genetic algorithms
 Using Tensorflow, Ray, Python
 
 Currently incomplete
+
+Based on MDGAN 
+
+https://arxiv.org/abs/1811.03850
+
+![architecture](./results/FLGAN.png)
+
+![architecture](./results/MDGAN.png)
+
+
 <br  /><br  /><br  /><br  /><br  /><br  />
 
 

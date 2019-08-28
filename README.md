@@ -37,7 +37,7 @@ You can change the number of discriminator, generator, and federated learning.(e
 <br  /><br  /><br  /><br  /><br  /><br  />
 
 These are the results of distributed learning
-Used the same model to see only the difference in the number of classifiers and constructors.
+Used the same model to see only the difference in the number of generator and discriminator.
 However, you can also create a random model to search good hyperparameters through genetic algorithm.
 
 ![architecture](./results/1g1d.png)

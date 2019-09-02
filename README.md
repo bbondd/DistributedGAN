@@ -38,7 +38,7 @@ You can change the number of discriminator, generator, and federated learning.(e
 
 These are the results of distributed learning
 Used the same model to see only the difference in the number of generator and discriminator.
-However, you can also create a random model to search good hyperparameters through genetic algorithm.
+However, you can also create a random model to search good hyperparameters manually.
 
 ![architecture](./results/1g1d.png)
 ![architecture](./results/1g2d.png)
